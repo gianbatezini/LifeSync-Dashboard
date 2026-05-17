@@ -8,9 +8,12 @@ import {
   AuthError, 
   GoogleAuthProvider, 
   signInWithPopup, 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   onAuthStateChanged, 
   User,
-  signOut 
+  signOut,
+  updateProfile
 } from 'firebase/auth';
 import { 
   LayoutDashboard, 
@@ -34,6 +37,12 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'finance' | 'fitness'>('finance');
+  
+  // Estados para Login por E-mail
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  const [authLoading, setAuthLoading] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
@@ -47,8 +56,46 @@ export default function App() {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-    } catch (error) {
-      console.error("Login failed", error);
+    } catch (error: any) {
+      console.error("Erro no Login Google:", error);
+      handleAuthError(error);
+    }
+  };
+
+  const handleEmailAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    try {
+      if (authMode === 'register') {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        // Podemos adicionar um nome padrão baseado no e-mail
+        await updateProfile(userCredential.user, {
+          displayName: email.split('@')[0]
+        });
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+      }
+    } catch (error: any) {
+      console.error("Erro Autenticação E-mail:", error);
+      handleAuthError(error);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleAuthError = (error: any) => {
+    if (error.code === 'auth/unauthorized-domain') {
+      alert("Erro: Domínio não autorizado. Adicione o domínio do Vercel no Console do Firebase.");
+    } else if (error.code === 'auth/popup-blocked') {
+      alert("O seu navegador bloqueou o popup de login.");
+    } else if (error.code === 'auth/email-already-in-use') {
+      alert("Este e-mail já está em uso por outra conta.");
+    } else if (error.code === 'auth/weak-password') {
+      alert("A senha é muito fraca. Mínimo de 6 caracteres.");
+    } else if (error.code === 'auth/invalid-credential') {
+      alert("Credenciais inválidas. Verifique e-mail e senha.");
+    } else {
+      alert(`Erro: ${error.message}`);
     }
   };
 
@@ -96,14 +143,63 @@ export default function App() {
             </p>
           </div>
 
-          <button
-            onClick={login}
-            className="w-full flex items-center justify-center gap-4 bg-card-bg border border-cyber-blue/30 py-6 px-8 rounded-sm shadow-[inset_0_0_20px_rgba(0,240,255,0.05)] hover:border-cyber-blue hover:shadow-[0_0_30px_rgba(0,240,255,0.2)] transition-all group active:scale-[0.98] text-[#e0e0e0] relative overflow-hidden"
-          >
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-cyber-blue/50 to-transparent" />
-            <LogIn className="w-5 h-5 text-gray-600 group-hover:text-cyber-blue transition-colors group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]" />
-            <span className="font-mono font-bold tracking-[0.4em] uppercase text-[11px]">Inicializar Vínculo Neural</span>
-          </button>
+          <div className="space-y-4">
+            <form onSubmit={handleEmailAuth} className="space-y-4">
+              <input 
+                type="email"
+                placeholder="E-MAIL DE REGISTRO"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-black/40 border border-[#e2c08d]/20 py-4 px-6 rounded-sm text-[11px] font-mono tracking-widest focus:border-gold outline-none transition-all placeholder:text-gray-700"
+              />
+              <input 
+                type="password"
+                placeholder="CHAVE DE ACESSO"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-black/40 border border-[#e2c08d]/20 py-4 px-6 rounded-sm text-[11px] font-mono tracking-widest focus:border-gold outline-none transition-all placeholder:text-gray-700"
+              />
+              
+              <button
+                type="submit"
+                disabled={authLoading}
+                className={cn(
+                  "w-full py-5 px-8 rounded-sm font-mono font-bold tracking-[0.4em] uppercase text-[10px] transition-all relative overflow-hidden",
+                  authLoading 
+                    ? "opacity-50 cursor-not-allowed bg-gray-800" 
+                    : "bg-gradient-to-r from-[#b8976b] to-[#e2c08d] text-dark-bg hover:shadow-[0_0_20px_rgba(226,192,141,0.3)] active:scale-95"
+                )}
+              >
+                {authLoading ? 'Processando...' : (authMode === 'login' ? 'Entrar no Sistema' : 'Criar Novo Registro')}
+              </button>
+
+              <div className="flex justify-between items-center px-1">
+                <button 
+                  type="button"
+                  onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+                  className="text-[8px] font-mono uppercase tracking-[0.3em] text-[#a68b5e] hover:text-gold transition-colors"
+                >
+                  {authMode === 'login' ? '[ Registrar Nova Bio-Assinatura ]' : '[ Já possuo acesso ]'}
+                </button>
+              </div>
+            </form>
+
+            <div className="flex items-center gap-4 py-4">
+              <div className="flex-1 h-[1px] bg-white/5"></div>
+              <span className="text-[8px] font-mono text-gray-700 uppercase tracking-widest">Ou utilizar Google</span>
+              <div className="flex-1 h-[1px] bg-white/5"></div>
+            </div>
+
+            <button
+              onClick={login}
+              className="w-full flex items-center justify-center gap-4 bg-card-bg border border-cyber-blue/30 py-4 px-8 rounded-sm shadow-[inset_0_0_20px_rgba(0,240,255,0.05)] hover:border-cyber-blue hover:shadow-[0_0_30px_rgba(0,240,255,0.1)] transition-all group active:scale-[0.98] text-[#e0e0e0] relative overflow-hidden"
+            >
+              <LogIn className="w-4 h-4 text-gray-600 group-hover:text-cyber-blue transition-colors group-hover:drop-shadow-[0_0_8px_rgba(0,240,255,0.6)]" />
+              <span className="font-mono font-bold tracking-[0.4em] uppercase text-[10px]">Acesso Google</span>
+            </button>
+          </div>
           
           <div className="pt-8 flex flex-col items-center gap-2">
             <div className="w-12 h-[1px] bg-border-dim"></div>
@@ -177,7 +273,7 @@ export default function App() {
             <div className="relative group">
               <div className="absolute inset-0 bg-cyber-blue/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
               <img 
-                src={user.photoURL || ''} 
+                src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || user.email}&background=0D0D0F&color=e2c08d`} 
                 alt={user.displayName || ''} 
                 className="w-14 h-14 rounded-full border border-cyber-blue/30 bg-card-bg grayscale-0 hover:grayscale-0 transition-all p-1"
               />
