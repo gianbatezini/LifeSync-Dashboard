@@ -158,5 +158,33 @@ service cloud.firestore {
         );
       allow delete: if isOwner(existing().userId);
     }
+
+    // --- Appointment Rules ---
+    function isValidAppointment(data) {
+      return data.keys().hasAll(['userId', 'title', 'date', 'time', 'createdAt', 'updatedAt'])
+        && data.keys().size() <= 8
+        && data.userId == request.auth.uid
+        && data.title is string && data.title.size() < 200
+        && data.date is string
+        && data.time is string
+        && data.createdAt == request.time
+        && data.updatedAt == request.time;
+    }
+
+    match /appointments/{appointmentId} {
+      allow get: if isOwner(existing().userId);
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() 
+        && isValidId(appointmentId) 
+        && isValidAppointment(incoming());
+      allow update: if isOwner(existing().userId)
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['title', 'description', 'date', 'time', 'updatedAt'])
+        );
+      allow delete: if isOwner(existing().userId);
+    }
   }
 }

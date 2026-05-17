@@ -29,7 +29,8 @@ import {
   CheckCircle2,
   Layout,
   Brain,
-  Target
+  Target,
+  Calendar
 } from 'lucide-react';
 import { auth } from './firebase';
 import { cn } from './lib/utils';
@@ -37,12 +38,13 @@ import { motion, AnimatePresence } from 'motion/react';
 import FinancialDashboard from './components/FinancialDashboard';
 import FitnessDashboard from './components/FitnessDashboard';
 import ProjectsDashboard from './components/ProjectsDashboard';
+import AgendaDashboard from './components/AgendaDashboard';
 import { ParticlesBackground } from './components/ParticlesBackground';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'finance' | 'fitness' | 'projects'>('finance');
+  const [activeTab, setActiveTab] = useState<'finance' | 'fitness' | 'projects' | 'agenda'>('finance');
   
   // Estados para Login por E-mail
   const [email, setEmail] = useState('');
@@ -250,6 +252,12 @@ export default function App() {
             icon={<Rocket className="w-5 h-5" />}
             label="Projetos"
           />
+          <NavIcon 
+            active={activeTab === 'agenda'} 
+            onClick={() => setActiveTab('agenda')}
+            icon={<Calendar className="w-5 h-5" />}
+            label="Agenda"
+          />
         </div>
 
         <button 
@@ -267,13 +275,15 @@ export default function App() {
             <h2 className="text-[10px] font-mono text-[#a68b5e] uppercase tracking-[0.6em] mb-4 font-bold opacity-90 border-l-2 border-[#a68b5e]/30 pl-4">
               {activeTab === 'finance' ? 'Monitoramento de Liquidez de Ativos' : 
                activeTab === 'fitness' ? 'Métricas de Performance Orgânica' : 
-               'Incubação de Iniciativas Estratégicas'}
+               activeTab === 'projects' ? 'Incubação de Iniciativas Estratégicas' :
+               'Sincronização Cronológica de Eventos'}
             </h2>
             <h1 className="text-6xl font-serif italic tracking-tighter flex items-baseline gap-5">
                <span className="bg-gradient-to-b from-[#f8e4be] via-[#e2c08d] to-[#b8976b] bg-clip-text text-transparent drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
                  {activeTab === 'finance' ? 'Finanças' : 
                   activeTab === 'fitness' ? 'Bio-Métricas' : 
-                  'Projetos'}
+                  activeTab === 'projects' ? 'Projetos' :
+                  'Agenda'}
                </span>
                <span className="text-[11px] font-mono text-[#e2c08d] uppercase tracking-[0.3em] font-medium opacity-40 italic border-b border-[#e2c08d]/20 pb-1">Classe-Genesis // Log</span>
             </h1>
@@ -312,7 +322,8 @@ export default function App() {
             >
               {activeTab === 'finance' ? <FinancialDashboard user={user} /> : 
                activeTab === 'fitness' ? <FitnessDashboard user={user} /> :
-               <ProjectsDashboard user={user} />}
+               activeTab === 'projects' ? <ProjectsDashboard user={user} /> :
+               <AgendaDashboard user={user} />}
             </motion.div>
           </AnimatePresence>
         </div>

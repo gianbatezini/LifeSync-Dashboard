@@ -61,3 +61,14 @@ export interface Project {
   updatedAt: any;
   status: 'active' | 'completed' | 'archived';
 }
+
+export interface Appointment {
+  id?: string;
+  userId: string;
+  title: string;
+  description: string;
+  date: string; // ISO string (YYYY-MM-DD)
+  time: string; // HH:mm
+  createdAt: any;
+  updatedAt: any;
+}

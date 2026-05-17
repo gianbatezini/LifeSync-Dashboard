@@ -83,6 +83,21 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "title", "status"]
+    },
+    "Appointment": {
+      "title": "Agenda Appointment",
+      "description": "Represents a scheduled event or appointment.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "date": { "type": "string", "format": "date" },
+        "time": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "date", "time"]
     }
   },
   "firestore": {
@@ -105,6 +120,10 @@
     "/projects/{projectId}": {
       "schema": "Project",
       "description": "User personal projects and idea incubation."
+    },
+    "/appointments/{appointmentId}": {
+      "schema": "Appointment",
+      "description": "User scheduled events and appointments."
     }
   }
 }
