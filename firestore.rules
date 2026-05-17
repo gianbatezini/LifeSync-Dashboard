@@ -1,0 +1,135 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Expense Rules ---
+    function isValidExpense(data) {
+      return data.keys().hasAll(['userId', 'amount', 'category', 'date', 'createdAt', 'updatedAt']) 
+        && data.keys().size() <= 10 // Allowing for optional description/metadata
+        && data.userId == request.auth.uid
+        && data.amount is number
+        && data.category in ['fixed', 'home', 'credit_card', 'variable']
+        && data.date is string
+        && data.createdAt == request.time
+        && data.updatedAt == request.time;
+    }
+
+    match /expenses/{expenseId} {
+      allow get: if isOwner(existing().userId);
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() 
+        && isValidId(expenseId) 
+        && isValidExpense(incoming());
+      allow update: if isOwner(existing().userId) 
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['amount', 'category', 'description', 'date', 'updatedAt'])
+        );
+      allow delete: if isOwner(existing().userId);
+    }
+
+    // --- Income Rules ---
+    function isValidIncome(data) {
+      return data.keys().hasAll(['userId', 'amount', 'description', 'date', 'createdAt', 'updatedAt']) 
+        && data.keys().size() == 6
+        && data.userId == request.auth.uid
+        && data.amount is number
+        && data.date is string
+        && data.createdAt == request.time
+        && data.updatedAt == request.time;
+    }
+
+    match /incomes/{incomeId} {
+      allow get: if isOwner(existing().userId);
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() 
+        && isValidId(incomeId) 
+        && isValidIncome(incoming());
+      allow update: if isOwner(existing().userId) 
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['amount', 'description', 'date', 'updatedAt'])
+        );
+      allow delete: if isOwner(existing().userId);
+    }
+
+    // --- PhysicalMetric Rules ---
+    function isValidPhysicalMetric(data) {
+      return data.keys().hasAll(['userId', 'weight', 'date', 'createdAt', 'updatedAt'])
+        && data.userId == request.auth.uid
+        && data.weight is number
+        && data.date is string
+        && data.createdAt == request.time
+        && data.updatedAt == request.time;
+    }
+
+    match /physicalMetrics/{metricId} {
+      allow get: if isOwner(existing().userId);
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() 
+        && isValidId(metricId) 
+        && isValidPhysicalMetric(incoming());
+      allow update: if isOwner(existing().userId)
+        && incoming().userId == existing().userId
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['weight', 'bodyFat', 'date', 'updatedAt'])
+        );
+      allow delete: if isOwner(existing().userId);
+    }
+
+    // --- Exercise Rules ---
+    function isValidExercise(data) {
+      return data.keys().hasAll(['userId', 'type', 'name', 'value', 'date', 'createdAt', 'updatedAt'])
+        && data.userId == request.auth.uid
+        && data.type in ['aerobic', 'strength']
+        && data.name is string && data.name.size() < 100
+        && data.value is number
+        && data.date is string
+        && data.createdAt == request.time
+        && data.updatedAt == request.time;
+    }
+
+    match /exercises/{exerciseId} {
+      allow get: if isOwner(existing().userId);
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() 
+        && isValidId(exerciseId) 
+        && isValidExercise(incoming());
+      allow update: if isOwner(existing().userId)
+        && incoming().userId == existing().userId
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['name', 'value', 'subValue', 'date', 'updatedAt'])
+        );
+      allow delete: if isOwner(existing().userId);
+    }
+  }
+}

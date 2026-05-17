@@ -1,0 +1,8 @@
+{
+  "name": "LifeSync Dashboard",
+  "description": "A personal tracking dashboard for financial management and physical health metrics, featuring expense categorization and fitness progress tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

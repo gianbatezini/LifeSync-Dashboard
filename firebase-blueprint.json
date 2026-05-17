@@ -1,0 +1,81 @@
+{
+  "entities": {
+    "Expense": {
+      "title": "Documenting financial expenses",
+      "description": "Represents a single financial transaction/expense.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "UID of the user who owns this record." },
+        "amount": { "type": "number", "description": "The amount spent." },
+        "category": { "type": "string", "enum": ["fixed", "home", "credit_card", "variable"], "description": "Category of the expense." },
+        "description": { "type": "string", "description": "Details about the expense." },
+        "date": { "type": "string", "format": "date-time", "description": "When the expense occurred." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "amount", "category", "date"]
+    },
+    "PhysicalMetric": {
+      "title": "Body measurements",
+      "description": "Daily or periodic measurements like weight and fat percentage.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "weight": { "type": "number" },
+        "bodyFat": { "type": "number" },
+        "date": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "weight", "date"]
+    },
+    "Exercise": {
+      "title": "Exercise Log",
+      "description": "Records of physical activities.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["aerobic", "strength"] },
+        "name": { "type": "string" },
+        "value": { "type": "number", "description": "Primary value (kg for strength, km or min for cardio)" },
+        "subValue": { "type": "number", "description": "Secondary value (reps for strength, bpm for cardio, etc)" },
+        "date": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "type", "name", "value", "date"]
+    },
+    "Income": {
+      "title": "Documenting financial income",
+      "description": "Represents a single financial transaction/income.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "UID of the user who owns this record." },
+        "amount": { "type": "number", "description": "The amount received." },
+        "description": { "type": "string", "description": "Details about the income." },
+        "date": { "type": "string", "format": "date-time", "description": "When the income occurred." },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "amount", "date"]
+    }
+  },
+  "firestore": {
+    "/expenses/{expenseId}": {
+      "schema": "Expense",
+      "description": "User financial tracking."
+    },
+    "/incomes/{incomeId}": {
+      "schema": "Income",
+      "description": "User income tracking."
+    },
+    "/physicalMetrics/{metricId}": {
+      "schema": "PhysicalMetric",
+      "description": "User weight and body fat tracking."
+    },
+    "/exercises/{exerciseId}": {
+      "schema": "Exercise",
+      "description": "User workout logs."
+    }
+  }
+}
