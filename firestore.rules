@@ -131,5 +131,32 @@ service cloud.firestore {
         );
       allow delete: if isOwner(existing().userId);
     }
+
+    // --- Project Rules ---
+    function isValidProject(data) {
+      return data.keys().hasAll(['userId', 'title', 'checkpoints', 'status', 'createdAt', 'updatedAt'])
+        && data.userId == request.auth.uid
+        && data.title is string && data.title.size() < 200
+        && data.checkpoints is list
+        && data.status in ['active', 'completed', 'archived']
+        && data.createdAt == request.time
+        && data.updatedAt == request.time;
+    }
+
+    match /projects/{projectId} {
+      allow get: if isOwner(existing().userId);
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() 
+        && isValidId(projectId) 
+        && isValidProject(incoming());
+      allow update: if isOwner(existing().userId)
+        && incoming().userId == existing().userId
+        && incoming().createdAt == existing().createdAt
+        && incoming().updatedAt == request.time
+        && (
+          incoming().diff(existing()).affectedKeys().hasOnly(['title', 'description', 'checkpoints', 'status', 'updatedAt'])
+        );
+      allow delete: if isOwner(existing().userId);
+    }
   }
 }

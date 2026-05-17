@@ -44,3 +44,20 @@ export interface Exercise {
   createdAt: any;
   updatedAt: any;
 }
+
+export interface Checkpoint {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
+export interface Project {
+  id?: string;
+  userId: string;
+  title: string;
+  description: string;
+  checkpoints: Checkpoint[];
+  createdAt: any;
+  updatedAt: any;
+  status: 'active' | 'completed' | 'archived';
+}

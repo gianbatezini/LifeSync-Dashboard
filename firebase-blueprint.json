@@ -58,6 +58,31 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "amount", "date"]
+    },
+    "Project": {
+      "title": "Personal Projects and Ideas",
+      "description": "Represents a personal project or idea with subdivided checkpoints.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "checkpoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "title": { "type": "string" },
+              "completed": { "type": "boolean" }
+            }
+          }
+        },
+        "status": { "type": "string", "enum": ["active", "completed", "archived"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "title", "status"]
     }
   },
   "firestore": {
@@ -76,6 +101,10 @@
     "/exercises/{exerciseId}": {
       "schema": "Exercise",
       "description": "User workout logs."
+    },
+    "/projects/{projectId}": {
+      "schema": "Project",
+      "description": "User personal projects and idea incubation."
     }
   }
 }

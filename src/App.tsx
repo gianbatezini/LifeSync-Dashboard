@@ -21,22 +21,28 @@ import {
   Dumbbell, 
   LogOut, 
   LogIn,
-  MoreHorizontal,
-  ChevronRight,
   TrendingUp,
-  Activity
+  Activity,
+  Rocket,
+  Plus,
+  Trash2,
+  CheckCircle2,
+  Layout,
+  Brain,
+  Target
 } from 'lucide-react';
 import { auth } from './firebase';
 import { cn } from './lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import FinancialDashboard from './components/FinancialDashboard';
 import FitnessDashboard from './components/FitnessDashboard';
+import ProjectsDashboard from './components/ProjectsDashboard';
 import { ParticlesBackground } from './components/ParticlesBackground';
 
 export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'finance' | 'fitness'>('finance');
+  const [activeTab, setActiveTab] = useState<'finance' | 'fitness' | 'projects'>('finance');
   
   // Estados para Login por E-mail
   const [email, setEmail] = useState('');
@@ -238,6 +244,12 @@ export default function App() {
             icon={<Dumbbell className="w-5 h-5" />}
             label="Biometria"
           />
+          <NavIcon 
+            active={activeTab === 'projects'} 
+            onClick={() => setActiveTab('projects')}
+            icon={<Rocket className="w-5 h-5" />}
+            label="Projetos"
+          />
         </div>
 
         <button 
@@ -253,11 +265,15 @@ export default function App() {
         <header className="px-12 pt-14 pb-10 flex items-end justify-between sticky top-0 bg-dark-bg/80 backdrop-blur-xl z-40 border-b border-white/5 mx-6">
           <div className="relative">
             <h2 className="text-[10px] font-mono text-[#a68b5e] uppercase tracking-[0.6em] mb-4 font-bold opacity-90 border-l-2 border-[#a68b5e]/30 pl-4">
-              {activeTab === 'finance' ? 'Monitoramento de Liquidez de Ativos' : 'Métricas de Performance Orgânica'}
+              {activeTab === 'finance' ? 'Monitoramento de Liquidez de Ativos' : 
+               activeTab === 'fitness' ? 'Métricas de Performance Orgânica' : 
+               'Incubação de Iniciativas Estratégicas'}
             </h2>
             <h1 className="text-6xl font-serif italic tracking-tighter flex items-baseline gap-5">
                <span className="bg-gradient-to-b from-[#f8e4be] via-[#e2c08d] to-[#b8976b] bg-clip-text text-transparent drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">
-                 {activeTab === 'finance' ? 'Finanças' : 'Bio-Métricas'}
+                 {activeTab === 'finance' ? 'Finanças' : 
+                  activeTab === 'fitness' ? 'Bio-Métricas' : 
+                  'Projetos'}
                </span>
                <span className="text-[11px] font-mono text-[#e2c08d] uppercase tracking-[0.3em] font-medium opacity-40 italic border-b border-[#e2c08d]/20 pb-1">Classe-Genesis // Log</span>
             </h1>
@@ -292,8 +308,11 @@ export default function App() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="w-full"
             >
-              {activeTab === 'finance' ? <FinancialDashboard user={user} /> : <FitnessDashboard user={user} />}
+              {activeTab === 'finance' ? <FinancialDashboard user={user} /> : 
+               activeTab === 'fitness' ? <FitnessDashboard user={user} /> :
+               <ProjectsDashboard user={user} />}
             </motion.div>
           </AnimatePresence>
         </div>
